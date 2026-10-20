@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
-    id("com.android.legacy-kapt") version "9.4.1"
+
+    // Safe Args: enable it for this app
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -39,6 +41,8 @@ android {
 }
 
 dependencies {
+    implementation("androidx.navigation:navigation-fragment-ktx:2.9.8")
+    implementation("androidx.navigation:navigation-ui-ktx:2.9.8")
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)

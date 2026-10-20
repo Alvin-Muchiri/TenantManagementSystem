@@ -1,10 +1,10 @@
 package com.example.tenantmanagementsystem
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import com.example.tenantmanagementsystem.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
@@ -30,7 +30,7 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(
                     this,
                     "Please enter your email and password",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_SHORT,
                 ).show()
                 return@setOnClickListener
             }
@@ -46,7 +46,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         binding.helpTextView.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.strathmore.edu"))
+            val intent = Intent(Intent.ACTION_VIEW, "https://www.strathmore.edu".toUri())
             startActivity(intent)
         }
     }
