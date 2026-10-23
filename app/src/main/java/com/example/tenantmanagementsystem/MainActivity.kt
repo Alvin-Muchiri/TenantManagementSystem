@@ -1,19 +1,18 @@
+
 package com.example.tenantmanagementsystem
 
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
-import android.content.Intent
 import android.view.MenuItem
-import androidx.navigation.ui.onNavDestinationSelected
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.ui.onNavDestinationSelected
 import androidx.navigation.ui.setupActionBarWithNavController
-import com.example.tenantmanagementsystem.databinding.NavHeaderBinding
 import com.example.tenantmanagementsystem.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -39,19 +38,35 @@ class MainActivity : AppCompatActivity() {
 
         navController = navHostFragment.navController
 
-        // Connect the Toolbar title and Back arrow to navigation
+        // Configure the Toolbar for navigation without a drawer
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.dashboardFragment, R.id.addTenantFragment, R.id.viewTenantsFragment),
-            binding.drawerLayout
+            setOf(
+                R.id.dashboardFragment,
+                R.id.addTenantFragment,
+                R.id.viewTenantsFragment,
+                R.id.aboutFragment
+            )
         )
+
         setupActionBarWithNavController(navController, appBarConfiguration)
 
-        binding.navView.setupWithNavController(navController)
+        // Connect Bottom Navigation and handle Logout separately
+        binding.bottomNav.setOnItemSelectedListener { item ->
+            if (item.itemId == R.id.action_logout) {
+                logout()
+                true
+            } else {
+                item.onNavDestinationSelected(navController)
+            }
+        }
+    }
 
-        val email = intent.getStringExtra("EMAIL")
-        val headerBinding = NavHeaderBinding.bind(binding.navView.getHeaderView(0))
-        headerBinding.headerEmailTextView.text = email ?: "Signed in"
-
+    // Log out and return to LoginActivity
+    private fun logout() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
     }
 
     // Make the Toolbar's Up arrow work
@@ -66,15 +81,15 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    // What happens when a menu item is tapped
+    // Handle App Bar menu selections
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_logout) {
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+            logout()
             return true
         }
-        return item.onNavDestinationSelected(navController) || super.onOptionsItemSelected(item)
+
+        return item.onNavDestinationSelected(navController) ||
+                super.onOptionsItemSelected(item)
     }
 
     // Lifecycle logging retained from Practical 2

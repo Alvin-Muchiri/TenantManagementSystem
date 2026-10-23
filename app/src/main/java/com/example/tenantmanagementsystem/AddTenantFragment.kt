@@ -1,6 +1,8 @@
+
 package com.example.tenantmanagementsystem
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +21,8 @@ class AddTenantFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        Log.d("TENANT_LIFECYCLE", "AddTenantFragment: onCreateView")
+
         _binding = FragmentAddTenantBinding.inflate(
             inflater,
             container,
@@ -33,6 +37,8 @@ class AddTenantFragment : Fragment() {
         savedInstanceState: Bundle?
     ) {
         super.onViewCreated(view, savedInstanceState)
+
+        Log.d("TENANT_LIFECYCLE", "AddTenantFragment: onViewCreated")
 
         binding.saveButton.setOnClickListener {
 
@@ -52,6 +58,12 @@ class AddTenantFragment : Fragment() {
                 return@setOnClickListener
             }
 
+            // Validate the phone number
+            if (phone.filter { it.isDigit() }.length < 10) {
+                binding.phoneEditText.error = "Enter a valid phone number"
+                return@setOnClickListener
+            }
+
             // Create and save the tenant
             val tenant = Tenant(name, phone, rent)
             TenantRepository.addTenant(tenant)
@@ -66,6 +78,9 @@ class AddTenantFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+
+        Log.d("TENANT_LIFECYCLE", "AddTenantFragment: onDestroyView")
+
         _binding = null
     }
 }
