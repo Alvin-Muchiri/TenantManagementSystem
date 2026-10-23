@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.tenantmanagementsystem.databinding.FragmentAddTenantBinding
 
 class AddTenantFragment : Fragment() {
@@ -16,12 +17,12 @@ class AddTenantFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAddTenantBinding.inflate(
             inflater,
             container,
-            false,
+            false
         )
 
         return binding.root
@@ -29,27 +30,37 @@ class AddTenantFragment : Fragment() {
 
     override fun onViewCreated(
         view: View,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.saveButton.setOnClickListener {
+
+            // Read the tenant details
             val name = binding.tenantNameEditText.text.toString().trim()
             val phone = binding.phoneEditText.text.toString().trim()
             val rent = binding.rentEditText.text.toString().trim()
 
-            if (name.isNotEmpty() && phone.isNotEmpty() && rent.isNotEmpty()) {
-                val tenant = Tenant(name, phone, rent)
-                TenantRepository.addTenant(tenant)
+            // Validate the fields
+            if (name.isEmpty() || phone.isEmpty() || rent.isEmpty()) {
+                Toast.makeText(
+                    requireContext(),
+                    "Please fill in all fields",
+                    Toast.LENGTH_SHORT
+                ).show()
 
-                Toast.makeText(requireContext(), "Tenant saved", Toast.LENGTH_SHORT).show()
-
-                binding.tenantNameEditText.text?.clear()
-                binding.phoneEditText.text?.clear()
-                binding.rentEditText.text?.clear()
-            } else {
-                Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+
+            // Create and save the tenant
+            val tenant = Tenant(name, phone, rent)
+            TenantRepository.addTenant(tenant)
+
+            // Pass the tenant to the View Tenants screen
+            val action = AddTenantFragmentDirections
+                .actionAddTenantFragmentToViewTenantsFragment(tenant)
+
+            findNavController().navigate(action)
         }
     }
 

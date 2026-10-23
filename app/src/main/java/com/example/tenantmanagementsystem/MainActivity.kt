@@ -1,143 +1,108 @@
 package com.example.tenantmanagementsystem
 
-import android.content.Intent
-import android.net.Uri
-import android.util.Log
 import android.os.Bundle
-import android.widget.Toast
+import android.util.Log
+import android.view.Menu
+import android.content.Intent
+import android.view.MenuItem
+import androidx.navigation.ui.onNavDestinationSelected
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.ui.setupActionBarWithNavController
+import com.example.tenantmanagementsystem.databinding.NavHeaderBinding
 import com.example.tenantmanagementsystem.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
-    private var lastTenant: Tenant? = null
+    private lateinit var navController: NavController
+    private lateinit var appBarConfiguration: AppBarConfiguration
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Write a message to Logcat every time onCreate() runs.
-        // "TENANT_LIFECYCLE" is a tag: a label we search for in Logcat.
         Log.d("TENANT_LIFECYCLE", "MainActivity: onCreate")
 
+        // Load the Toolbar and NavHost from activity_main.xml
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // ── RESTORE STATE ─────────────────────────────────────────
-        // savedInstanceState is the Bundle we filled in onSaveInstanceState().
-        // It is null the FIRST time the Activity opens (nothing saved yet).
-        if (savedInstanceState != null) {
+        // Use our Toolbar as the app's Action Bar
+        setSupportActionBar(binding.toolbar)
 
-            // Read each value back using the SAME keys we saved with
-            val name = savedInstanceState.getString("tenant_name")
-            val phone = savedInstanceState.getString("tenant_phone")
-            val rent = savedInstanceState.getString("tenant_rent")
+        // Find the NavHost that displays our Fragments
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
 
-            // Only rebuild the tenant if all three were saved
-            if (name != null && phone != null && rent != null) {
+        navController = navHostFragment.navController
 
-                val tenant = Tenant(name, phone, rent)
+        // Connect the Toolbar title and Back arrow to navigation
+        appBarConfiguration = AppBarConfiguration(
+            setOf(R.id.dashboardFragment, R.id.addTenantFragment, R.id.viewTenantsFragment),
+            binding.drawerLayout
+        )
+        setupActionBarWithNavController(navController, appBarConfiguration)
 
-                // Put the tenant back in BOTH places it lived before rotating:
-                lastTenant = tenant       // so CALL TENANT works again
-                binding.tenant = tenant  // so the summary appears again (Data Binding)
-            }
-        }
+        binding.navView.setupWithNavController(navController)
 
-        binding.saveButton.setOnClickListener {
+        val email = intent.getStringExtra("EMAIL")
+        val headerBinding = NavHeaderBinding.bind(binding.navView.getHeaderView(0))
+        headerBinding.headerEmailTextView.text = email ?: "Signed in"
 
-            val name = binding.tenantNameEditText.text.toString()
-            val phone = binding.phoneEditText.text.toString()
-            val rent = binding.rentEditText.text.toString()
+    }
 
-            val tenant = Tenant(name, phone, rent)
+    // Make the Toolbar's Up arrow work
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp(appBarConfiguration) ||
+                super.onSupportNavigateUp()
+    }
 
-            binding.tenant = tenant
+    // Turn main_menu.xml into menu items in the App Bar
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
 
-            lastTenant = tenant
-        }
-
-        binding.callButton.setOnClickListener {
-
-            val tenant = lastTenant
-
-            if (tenant == null) {
-                Toast.makeText(
-                    this,
-                    "Save a tenant first",
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@setOnClickListener
-            }
-
-            val intent = Intent(
-                Intent.ACTION_DIAL,
-                Uri.parse("tel:${tenant.phone}")
-            )
-
+    // What happens when a menu item is tapped
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_logout) {
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
+            return true
         }
+        return item.onNavDestinationSelected(navController) || super.onOptionsItemSelected(item)
     }
 
-
-    // ── SAVE STATE ────────────────────────────────────────────────
-    // Android calls this just before destroying the Activity
-    // (for example, when the phone rotates).
-    // outState is the Bundle that Android keeps for us.
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-
-        Log.d("TENANT_LIFECYCLE", "MainActivity: onSaveInstanceState")
-
-        // Copy into a val so Kotlin knows it can't change after the check
-        val tenant = lastTenant
-
-        if (tenant != null) {
-            // Store each field under its own KEY.
-            // onCreate() reads them back with the SAME keys.
-            outState.putString("tenant_name", tenant.name)
-            outState.putString("tenant_phone", tenant.phone)
-            outState.putString("tenant_rent", tenant.rent)
-        }
-    }
-
-
-    // ── LIFECYCLE METHODS ─────────────────────────────────────────
-    // Android calls each of these automatically. We only add a log
-    // line so we can watch the order in Logcat.
-
-    // The screen is now VISIBLE
+    // Lifecycle logging retained from Practical 2
     override fun onStart() {
         super.onStart()
         Log.d("TENANT_LIFECYCLE", "MainActivity: onStart")
     }
 
-    // The screen is in FRONT and the user can interact with it
     override fun onResume() {
         super.onResume()
         Log.d("TENANT_LIFECYCLE", "MainActivity: onResume")
     }
 
-    // The screen is LEAVING the front (e.g. Home was pressed)
     override fun onPause() {
         super.onPause()
         Log.d("TENANT_LIFECYCLE", "MainActivity: onPause")
     }
 
-    // The screen is NO LONGER VISIBLE
     override fun onStop() {
         super.onStop()
         Log.d("TENANT_LIFECYCLE", "MainActivity: onStop")
     }
 
-    // The user came BACK to a stopped screen
     override fun onRestart() {
         super.onRestart()
         Log.d("TENANT_LIFECYCLE", "MainActivity: onRestart")
     }
 
-    // The screen is being DESTROYED
     override fun onDestroy() {
         super.onDestroy()
         Log.d("TENANT_LIFECYCLE", "MainActivity: onDestroy")
